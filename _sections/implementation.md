@@ -24,7 +24,7 @@ $$
 \end{align*}
 $$
 
-Solving this optimization by setting its derivative to 0 gives us a solution built off the singular vectors of the de-meaned position covariance:
+Solving this optimization by setting its derivative to 0 gives us a solution built off the singular vectors of the covariance matrix:
 
 $$
 \begin{align*}

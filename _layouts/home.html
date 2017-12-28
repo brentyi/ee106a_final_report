@@ -12,73 +12,58 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-visible/1.2.0/jquery.visible.min.js"></script>
-    <link rel="stylesheet" href="{{ site.baseurl }}/assets/stylesheets/site.css" />
+    <link rel="stylesheet" href="{{ site.baseurl }}/css/oosa.css" />
     <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro" rel="stylesheet" />
+    <script>
+      $(function() {
+        // Estimate how "visibile" an element is
+        $.fn.visibility_heuristic = function() {
+          let element_top = this.offset().top;
+          let element_bottom = element_top + this.height();
+          let window_top = $(window).scrollTop();
+          let window_bottom = $(window).scrollTop() + $(window).height();
+          let visible_height = Math.min(element_bottom, window_bottom) - Math.max(element_top, window_top);
+          visible_height = Math.max(0, visible_height);
+          return Math.max(visible_height / this.height(), visible_height / $(window).height());
+        }
+
+        // Smooth scroll
+        $('a[href^="#"]').click(function(event) {
+          event.preventDefault();
+          $('body, html').stop().animate({
+            scrollTop: $($.attr(this, 'href')).offset().top
+          }, 500);
+        });
+
+        // Scroll events
+        $(window).on('scroll resize', function(){
+          // Highlight nav links based on the visibility of their respective sections
+          $('section').each(function(index) {
+            let id = $(this).attr('id');
+            let opacity = 0.2 + $(this).visibility_heuristic() * 0.4;
+            let color = 'rgba(0, 0, 0, ' + opacity + ')';
+            $('a[href="#' + id + '"]').parent().css("color", color);
+          });
+
+          // Show "scroll to top" button when nav is invisible
+          let nav_vis = $('#site-header').visibility_heuristic() * 100;
+          $('#scroll-up').css('transform', 'translateY(' + nav_vis + '%)');
+        });
+
+        // Scroll status changes after LaTeX rendeirng -- update accordingly
+        MathJax.Hub.Register.StartupHook("End",function () {
+          $(window).scroll();
+        });
+      });
+    </script>
   </head>
-  <script>
-    $(function() {
-      // Estimate how "visibile" an element is
-      $.fn.visibility_heuristic = function() {
-        let element_top = this.offset().top;
-        let element_bottom = element_top + this.height();
-        let window_top = $(window).scrollTop();
-        let window_bottom = $(window).scrollTop() + $(window).height();
-        let visible_height = Math.min(element_bottom, window_bottom) - Math.max(element_top, window_top);
-        visible_height = Math.max(0, visible_height);
-        return Math.max(visible_height / this.height(), visible_height / $(window).height());
-      }
-
-      /*
-      // Automatically parse and link <h2>'s
-      $('section').each(function() {
-        let id = $(this).attr('id');
-        let $sublist = $("ul#sublist-" + id);
-        $(this).children('h2').each(function() {
-          let id = $(this).attr('id');
-          $sublist.append('<li><a href="#' + id + '">' + $(this).text() + '</a></li>');
-        });
-      });
-      */
-
-      // Smooth scroll
-      $('a[href^="#"]').click(function(event) {
-        event.preventDefault();
-        $('body, html').stop().animate({
-          scrollTop: $($.attr(this, 'href')).offset().top
-        }, 500);
-      });
-
-      // Scroll events
-      $(window).on('scroll resize', function(){
-        // Highlight nav links based on the visibility of their respective sections
-        $('section').each(function(index) {
-          let id = $(this).attr('id');
-          let opacity = 0.2 + $(this).visibility_heuristic() * 0.4;
-          let color = 'rgba(0, 0, 0, ' + opacity + ')';
-          $('a[href="#' + id + '"]').parent().css("color", color);
-        });
-
-        // Show "scroll to top" button when nav is invisible
-        let nav_vis = $('#nav').visibility_heuristic() * 100;
-        $('#scroll-up').css('transform', 'translateY(' + nav_vis + '%)');
-      });
-
-      // Scroll status changes after LaTeX rendeirng -- update accordingly
-      MathJax.Hub.Register.StartupHook("End",function () {
-        $(window).scroll();
-      });
-    });
-  </script>
   <body>
     {% assign sorted_sections = site.sections | sort:"order" | sort:"parent" %}
-    <header id="nav">
+    <header id="site-header">
       {{content}}
       <ol>
         {% for section in sorted_sections %}
-        <li>
-          <a href="#{{ section.title | slugify }}">{{ section.title }}</a>
-          <ul id="sublist-{{ section.title | slugify }}"></ul>
-        </li>
+        <li><a href="#{{ section.title | slugify }}">{{ section.title }}</a></li>
         {% endfor %}
       </ol>
     </header>
@@ -90,12 +75,12 @@
       </section>
       {% endfor %}
     </main>
-    <a id="scroll-up" href="#nav">&uarr;</a>
+    <a id="scroll-up" href="#site-header">&uarr;</a>
 
     <!-- MathJax -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <!-- Piwik -->
-    <script type="text/javascript">
+    <script>
       let _paq = _paq || [];
       // tracker methods like "setCustomDimension" should be called before "trackPageView"
       _paq.push(['trackPageView']);
